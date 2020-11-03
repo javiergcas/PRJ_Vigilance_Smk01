@@ -1,4 +1,4 @@
-#Creation Time: Tue Nov  3 14:01:33 EST 2020
+#Creation Time: Tue Nov  3 18:35:13 EST 2020
 #swarm -f ./SC02_Preproc_fMRI.SWARM.sh -g 32 -t 32 --time 24:00:00 --logdir ./SC02_Preproc_fMRI.logs
 module load afni; tcsh -xef ./SC02_Preproc_fMRI/SC02_Preproc_fMRI.sub-521.sh 2>&1 | tee ./SC02_Preproc_fMRI/output.SC02_Preproc_fMRI.sub-521.txt
 module load afni; tcsh -xef ./SC02_Preproc_fMRI/SC02_Preproc_fMRI.sub-551.sh 2>&1 | tee ./SC02_Preproc_fMRI/output.SC02_Preproc_fMRI.sub-551.txt
