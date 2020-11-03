@@ -44,3 +44,12 @@ Functional pre-processing is accomplished with AFNI's afni_proc.py program, foll
 4. Create group-level full brain mask. [**SC05_Create_Group_FBMask**]
 
    This is a mask that contains "good" voxels for every subject. A "good" voxel is a voxel that it is within the imaged field of view of all subjects and that has no large standard deviation. This final mask will be used to decide which ROIs from a given atlas are used in subsequent analyses. This is necessary because you may have an atlas with a coverage that goes beyond that of our data, and it would be errorneous to include ROIs with no data in the computation of functional connectivity.
+   * Group Level mask located in PRJDIR/PrcsData/all/full_mask.lowSigma.all+tlrc
+   
+5. Find ROIs with sufficient voxels within the group-level imaging FOV [**SC06_ExtractROIs_in_GroupFOV**]
+
+   This script takes an atlas, and for each ROI it checks whether or not the ROI would still have 10 voxels after being masked with the group-level FOV mask generated in step (4). This script usually results in the drop of ventral ROIs that are not in the imaging FOV, or that are not inside the FOV mask due to excessive drop-out. 
+   
+   * Final atlas will be in PRJDIR/PrcsData/all/all.$ATLAS_NAME.MNI+tlrc
+   * Information about final ROI size and which ROIs are discarded is available at: PRJDIR/PrcsData/all/all.$ATLAS_NAME.MNI.txt
+   
