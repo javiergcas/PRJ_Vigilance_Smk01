@@ -20,26 +20,26 @@ This repository containst scripts to process Samika's DSET 1.
 Functional pre-processing is accomplished with AFNI's afni_proc.py program, followed by a series of additional steps that are specific to sliding window correlation analyses. 
 
 1. AFNI's afni_proc.py `SC02_Preproc_fMRI`
-  * Spike Removal
-  * Time Shift Correction (ensure TR and slice timing information is available in file headers)
-  * Compute alignment between Anatomical and EPI data
-  * Estimate Head Motion
-  * Bring Motion corrected data into MNI Space
-  * Spatial Smoothing (FWHM = 4mm)
-  * Compute Full Brain Masks
-  * Scale timeseries to signal percent change
-  * Nuisance regression: motion, first derivative of motion, 3 PCA's from ventricles (_CompCorr_), local white matter (_ANATICOR_), bandpass filtering (0.01 - 0.1Hz)
-  * Generate Quality Control HTML reports
+   * Spike Removal
+   * Time Shift Correction (ensure TR and slice timing information is available in file headers)
+   * Compute alignment between Anatomical and EPI data
+   * Estimate Head Motion
+   * Bring Motion corrected data into MNI Space
+   * Spatial Smoothing (FWHM = 4mm)
+   * Compute Full Brain Masks
+   * Scale timeseries to signal percent change
+   * Nuisance regression: motion, first derivative of motion, 3 PCA's from ventricles (_CompCorr_), local white matter (_ANATICOR_), bandpass filtering (0.01 - 0.1Hz)
+   * Generate Quality Control HTML reports
   
 2. Additional pre-processing `SC03_Preproc_fMRI_Additional`
-  * Generate pre-processed timeseries with other filtering schemes
-  * For 60s sliding windows [0.017 - 0.18 Hz]
-  * For 46s sliding windows [0.022 - 0.18 Hz]
-  * For 30s sliding windows [0.033 - 0.18 Hz]
+   * Generate pre-processed timeseries with other filtering schemes
+   * For 60s sliding windows [0.017 - 0.18 Hz]
+   * For 46s sliding windows [0.022 - 0.18 Hz]
+   * For 30s sliding windows [0.033 - 0.18 Hz]
   
 3. Find voxels with excessive variance (i.e., big vasculature) `SC04_Detect_HighStDev_Voxels`
-  * Find voxels with stdev > 3
-  * Remove such voxels from final full brain mask
+   * Find voxels with stdev > 3
+   * Remove such voxels from final full brain mask
   
 4. Create group-level full brain mask. `SC05_Create_Group_FBMask`
 
