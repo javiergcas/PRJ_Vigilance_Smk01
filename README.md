@@ -4,6 +4,8 @@ This repository containst scripts to process Samika's DSET 1.
 
 ## Anatomical Processing
 
+This part of the analysis uses Freesurfer and AFNI. Code to run this part of the analysis is available as bash scripts.
+
 1. Run _Freesurfer_ in anatomical data `SC00a_Freesurfer`
    * Skull-stripped version of anatomical
    * Ventricles mask (needed for CompCorr / Physiological noise removal)
@@ -16,6 +18,8 @@ This repository containst scripts to process Samika's DSET 1.
 3. Run AFNI's _@SSwarper_ to compute non-linear transformation into MNI space `SC01_Preproc_Anat`
 
 ## Functional Preprocessing
+
+This part of the analysis uses AFNI. Code to run this part of the analysis is available as bash scripts.
 
 Functional pre-processing is accomplished with AFNI's afni_proc.py program, followed by a series of additional steps that are specific to sliding window correlation analyses. 
 
