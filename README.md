@@ -1,6 +1,8 @@
+# Vigilance - Samika's DSET 01
+
 This repository containst scripts to process Samika's DSET 1. 
 
-# Anatomical Processing
+## Anatomical Processing
 
 1. Run Freesurfer in anatomical data.
   * Skull-stripped version of anatomical
@@ -13,6 +15,6 @@ This repository containst scripts to process Samika's DSET 1.
 
 3. Run AFNI's @SSwarper to compute non-linear transformation into MNI space
 
-# Functional Preprocessing
+## Functional Preprocessing
 
 Functional pre-processing is accomplished with AFNI's afni_proc.py program, followed by a series of additional steps that are specific to sliding window correlation analyses. 
