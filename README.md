@@ -53,3 +53,13 @@ Functional pre-processing is accomplished with AFNI's afni_proc.py program, foll
    * Final atlas will be in *PRJDIR/PrcsData/all/all.$ATLAS_NAME.MNI+tlrc*
    * Information about final ROI size and which ROIs are discarded is available at: *PRJDIR/PrcsData/all/all.$ATLAS_NAME.MNI.txt*
    
+6. Bring corrected atlas to final format for ROI series extraction `SC07_AdaptAtlasToSubject`
+   * Mask the atlas with the subject specific FOV mask (in the future this could be changed to a GM ribbon)
+   * Ensure ROI IDs are contiguous (e.g., if ROI 7 is removed, then it sould be 6 then 7, not 6 then 8)
+   * Create a new version of the atlas, where the first sub-brick contains the whole atlas, and then every successive sub-brick contains each individual ROI
+   * Output file: *PRJDIR/PrcsData/$SBJ/D02_Preproc_fMRI/$SBJ.$ATLASID.lowSigma+tlrc*
+
+7. Extract representative ROI per timeseries
+   * Instead of the mean, we use as representative timeseries the first PCA component.
+   
+## Sliding Window Correlation Analysis & Laplacian Embeddings
