@@ -10,16 +10,16 @@ This repository containst scripts to process Samika's DSET 1.
   * White matter mask (needed for ANATICOR / Scanner instability confounds removal)
   * Potentially also for GM ribbon mask 
 
-2. Run AFNI's _@SUMA_Make_Spec_FS_ to convert Freesurfer outputs into AFNI's format
+2. Run AFNI's _@SUMA_Make_Spec_FS_ to convert Freesurfer outputs into AFNI's format [**SC00b_Freesurfer2AFNI**]
   * SUMA folder within Freesurfer SUBJECTS_DIR is the main output
 
-3. Run AFNI's _@SSwarper_ to compute non-linear transformation into MNI space
+3. Run AFNI's _@SSwarper_ to compute non-linear transformation into MNI space [**SC01_Preproc_Anat**]
 
 ## Functional Preprocessing
 
 Functional pre-processing is accomplished with AFNI's afni_proc.py program, followed by a series of additional steps that are specific to sliding window correlation analyses. 
 
-1. AFNI's afni_proc.py
+1. AFNI's afni_proc.py [**SC02_Preproc_fMRI**]
   * Spike Removal
   * Time Shift Correction (ensure TR and slice timing information is available in file headers)
   * Compute alignment between Anatomical and EPI data
@@ -31,13 +31,13 @@ Functional pre-processing is accomplished with AFNI's afni_proc.py program, foll
   * Nuisance regression: motion, first derivative of motion, 3 PCA's from ventricles (_CompCorr_), local white matter (_ANATICOR_), bandpass filtering (0.01 - 0.1Hz)
   * Generate Quality Control HTML reports
   
-2. Additional pre-processing
+2. Additional pre-processing [**SC03_Preproc_fMRI_Additional**]
   * Generate pre-processed timeseries with other filtering schemes
   * For 60s sliding windows [0.017 - 0.18 Hz]
   * For 46s sliding windows [0.022 - 0.18 Hz]
   * For 30s sliding windows [0.033 - 0.18 Hz]
   
-3. Find voxels with excessive variance (i.e., big vasculature)
+3. Find voxels with excessive variance (i.e., big vasculature) [**SC04_Detect_HighStDev_Voxels**]
   * Find voxels with stdev > 3
   * Remove such voxels from final full brain mask
   
