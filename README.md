@@ -5,13 +5,13 @@ This repository containst scripts to process Samika's DSET 1.
 ## Anatomical Processing
 
 1. Run _Freesurfer_ in anatomical data `SC00a_Freesurfer`
-  * Skull-stripped version of anatomical
-  * Ventricles mask (needed for CompCorr / Physiological noise removal)
-  * White matter mask (needed for ANATICOR / Scanner instability confounds removal)
-  * Potentially also for GM ribbon mask 
+   * Skull-stripped version of anatomical
+   * Ventricles mask (needed for CompCorr / Physiological noise removal)
+   * White matter mask (needed for ANATICOR / Scanner instability confounds removal)
+   * Potentially also for GM ribbon mask 
 
 2. Run AFNI's _@SUMA_Make_Spec_FS_ to convert Freesurfer outputs into AFNI's format `SC00b_Freesurfer2AFNI`
-  * SUMA folder within Freesurfer SUBJECTS_DIR is the main output
+   * SUMA folder within Freesurfer SUBJECTS_DIR is the main output
 
 3. Run AFNI's _@SSwarper_ to compute non-linear transformation into MNI space `SC01_Preproc_Anat`
 
