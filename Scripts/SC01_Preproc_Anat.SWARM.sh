@@ -1,4 +1,4 @@
-#swarm -f ./SC01_Preproc_Anat.SWARM.sh -g 32 -t 32 --partition quick,normal
+#swarm -f ./SC01_Preproc_Anat.SWARM.sh -g 32 -t 32 --partition quick,norm --logdir ./SC01_Preproc_Anat.logs
 export SBJ=sub-521; sh ./SC01_Preproc_Anat.sh
 export SBJ=sub-551; sh ./SC01_Preproc_Anat.sh
 export SBJ=sub-552; sh ./SC01_Preproc_Anat.sh
