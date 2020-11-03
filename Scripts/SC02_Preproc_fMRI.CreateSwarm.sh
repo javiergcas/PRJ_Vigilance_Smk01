@@ -1,80 +1,134 @@
+# Oct/28/2020 - Javier Gonzalez-Castillo
+#
+# This script will create the pre-processing scripts for DSET01 using
+# afni_proc. This is the maximally pre-processing pipeline, which includes:
+# 1) Head motion regressors
+# 2) Physiological noise correction via compcorr
+# 3) ANATICOR correction for scanner artifacts
+#
+# This script requires pre-processing of anatomical data with both:
+# 1) Freesurfer to obtain masks for WM and lateral ventricles
+# 2) @SSwarper to obtain transformations into MNI space and skull-stripping
+#
+# STEPS:
+# 1) Run this script to generate pre-processing scripts for all subjects
+# 2) Submit to the clsuter via the following swarm command:
+#    swarm -f ./SC02_Preproc_fMRI.SWARM.sh -g 32 -t 32 --time 24:00:00 --logdir ./SC02_Preproc_fMRI.logs
+# ============================================================================
 set -e
 
 module load afni
 
-PRJDIR='/data/SFIM_Vigilance/PRJ_Vigilance_Smk01/'
+PRJDIR='/data/SFIM_Vigilance/PRJ_Vigilance_Smk01/'   # Project directory: includes Scripts, Freesurfer and PrcsData folders
+ORIG_DATA_DIR='/data/SFIM_Vigilance/Data/DSET01/'    # Folder containing the original (un-preprocessed data)
+SUBJECTS_DIR=` echo ${PRJDIR}/Freesurfer/`           # Folder with Freesurfer results
 
-echo "#swarm -f ./SC02_Preproc_fMRI.SWARM.sh -g 32 -t 32 --partition quick" > ./SC02_Preproc_fMRI.SWARM.sh
+# Initialize Swarm File
+# ---------------------
+echo "#Creation Time: `date`" > ./SC02_Preproc_fMRI.SWARM.sh
+echo "#swarm -f ./SC02_Preproc_fMRI.SWARM.sh -g 32 -t 32 --time 24:00:00 --logdir ./SC02_Preproc_fMRI.logs" >> ./SC02_Preproc_fMRI.SWARM.sh
 
+# Create log directory if needed (for swarm files)
+# ------------------------------------------------
+if [ ! -d SC02_Preproc_fMRI.logs ]; then 
+   mkdir SC02_Preproc_fMRI.logs
+fi
+
+# Create directory for all fMRI data processing files per subject if needed
+# -------------------------------------------------------------------------
 if [ ! -d SC02_Preproc_fMRI ]; then 
    mkdir SC02_Preproc_fMRI
 fi
 
-ORIG_DATA_DIR='/data/SFIM_Vigilance/Data/DSET01/'
-subjects=(`ls ${ORIG_DATA_DIR}/sub* | tr -s '\n' ' '`)
+# Get list of subjects (assumed @SSwarper scripts have been run)
+# --------------------------------------------------------------
+subjects=(`ls ${ORIG_DATA_DIR} | tr -s '\n' ' '`)
+subjects=(${subjects[@]:1})
+echo 'Number of subjects: '${#subjects[@]}
+echo 'Subjects: '${subjects[@]}
 
+
+# Run afni_proc for each subject
 for SBJ in ${subjects[@]}
 do
-  ANAT_PROC_DIR=`echo ${PRJDIR}/PrcsData/${SBJ}/D01_Anatomical`
-  FMRI_ORIG_DIR=`echo ${PRJDIR}/PrcsData/${SBJ}/D00_OriginalData`
+  ANAT_PROC_DIR=`echo ${PRJDIR}PrcsData/${SBJ}/D01_Anatomical`
+  FMRI_ORIG_DIR=`echo ${PRJDIR}PrcsData/${SBJ}/D00_OriginalData`
+  OUT_DIR=`echo ${PRJDIR}/PrcsData/${SBJ}/D02_Preproc_fMRI`
+  INPUT_PATH=`echo ${FMRI_ORIG_DIR}/${SBJ}_ses-sleep-task-spatatt+orig.HEAD`
+  
   # Create D00_OriginalData Directory if needed
   if [ ! -d ${FMRI_ORIG_DIR} ]; then
-     mkdir ${FMRI_ORIG_DIR}
+     echo "++ ERROR: Input Direcotry is missing: ${FMRI_ORIG_DIR}"
+     echo " +        Program will exit."
+     exit
   fi
+  
+  # Enter D00_OriginalData folder
+  cd ${FMRI_ORIG_DIR}
+  
   # Create a BRIK/HEAD version of the input data if needed
-  INPUT_PATH=`echo ${FMRI_DATA_DIR}/${SBJ}_ses-sleep-task-spatatt+orig.HEAD`
   if [ ! -e ${INPUT_PATH} ]; then
-     3dcopy ${ORIG_DATA_DIR}/${SBJ}/ses-sleep/func/${SBJ}_ses-sleep_task-spialattention_bold.nii.gz \
-            ${INPUT_PATH}
+     3dcopy ${ORIG_DATA_DIR}/${SBJ}/ses-sleep/func/${SBJ}_ses-sleep_task-spatialattention_bold.nii.gz ${SBJ}_ses-sleep-task-spatatt+orig
   fi
-
+  
   # Run afni_proc.py to generate the pre-processing script for this particular run
-  OUT_DIR=`echo ${PRJDIR}/PrcsData/${SBJ}/D02_Preproc_fMRI`
-  afni_proc.py                                                                  \
-             -subj_id ${SBJ}                                                    \
-             -copy_anat ${ANAT_PROC_DIR}/anatSS.${SBJ}.nii                      \
-             -anat_has_skull no                                                 \
-             -anat_follower anat_w_skull anat ${ORIG_DIR}/${SBJ}_Anat+orig      \
-             -dsets ${INPUT_PATH}                                               \
-             -blocks tshift align tlrc volreg blur mask regress                 \
-             -radial_correlate_blocks tcat volreg                               \
-             -tcat_remove_first_trs 0                                           \
-             -align_opts_aea -AddEdge -cost lpc+ZZ -giant_move -check_flip      \
-             -align_epi_strip_method 3dSkullStrip                               \
-             -tlrc_base MNI152_2009_template_SSW.nii.gz                         \
-             -tlrc_NL_warp                                                      \
-             -tlrc_NL_warped_dsets ${ANAT_PROC_DIR}/anatQQ.${SBJ}.nii           \
-                 ${ANAT_PROC_DIR}/anatQQ.${SBJ}.aff12.1D                        \
-                 ${ANAT_PROC_DIR}/anatQQ.${SBJ}_WARP.nii                        \
-    	     -tshift_opts_ts -tpattern alt+z2                                   \
-             -volreg_align_to first                                             \
-             -mask_epi_anat yes                                                 \
-             -blur_size 4.0                                                     \
-             -regress_opts_3dD -jobs 32                                         \
-             -regress_motion_per_run                                            \
-             -regress_censor_motion 0.1                                         \
-             -regress_censor_outliers 0.05                                      \
-             -regress_apply_mot_types demean deriv                              \
-             -regress_make_ideal_sum sum_ideal.1D                               \
-             -regress_est_blur_epits                                            \
-             -regress_est_blur_errts                                            \
-             -regress_run_clustsim no                                           \
-             -html_review_style pythonic                                        \
-             -out_dir ${OUT_DIR}                                                \
-             -script  SC04_Preproc_fMRI.${SBJ}.sh                               \
-    	     -volreg_compute_tsnr yes \
-             -regress_compute_tsnr yes \
-             -mask_segment_anat yes \
-             -mask_segment_erode yes \
-             -regress_make_cbucket yes \
-             -mask_intersect WM_inFB brain WM \
-             -mask_intersect GM_inFB brain GM \
-             -mask_intersect CSF_inFB brain CSF \
-             -mask_intersect WMe_inFB brain WMe \
-             -mask_intersect GMe_inFB brain GMe \
-             -mask_intersect CSFe_inFB brain CSFe \
+  afni_proc.py                                                                                \
+             -subj_id ${SBJ}                                                                  \
+             -blocks despike tshift align tlrc volreg blur mask scale regress                 \
+             -radial_correlate_blocks tcat volreg                                             \
+             -copy_anat ${ANAT_PROC_DIR}/anatSS.${SBJ}.nii                                    \
+             -anat_has_skull no                                                               \
+             -anat_follower anat_w_skull anat ${ANAT_PROC_DIR}/anatUAC.${SBJ}.nii             \
+             -anat_follower_ROI aaseg  anat ${SUBJECTS_DIR}/${SBJ}/SUMA/aparc.a2009s+aseg.nii \
+             -anat_follower_ROI aeseg  epi  ${SUBJECTS_DIR}/${SBJ}/SUMA/aparc.a2009s+aseg.nii \
+             -anat_follower_ROI FSvent epi  ${SUBJECTS_DIR}/${SBJ}/SUMA/fs_ap_latvent.nii.gz  \
+             -anat_follower_ROI FSWe   epi  ${SUBJECTS_DIR}/${SBJ}/SUMA/fs_ap_wm.nii.gz       \
+             -anat_follower_erode FSvent FSWe                                                 \
+             -tcat_remove_first_trs 5                                                         \
+             -dsets ${INPUT_PATH}                                                             \
+             -align_opts_aea -cost lpc+ZZ -giant_move -check_flip                             \
+             -tlrc_base MNI152_2009_template_SSW.nii.gz                                       \
+             -tlrc_NL_warp                                                                    \
+             -tlrc_NL_warped_dsets   ${ANAT_PROC_DIR}/anatQQ.${SBJ}.nii                       \
+                   ${ANAT_PROC_DIR}/anatQQ.${SBJ}.aff12.1D                                    \
+                   ${ANAT_PROC_DIR}/anatQQ.${SBJ}_WARP.nii                                    \
+    	     -tshift_opts_ts -tpattern seq-z                                                  \
+             -volreg_align_to first                                                           \
+             -volreg_align_e2a                                                                \
+             -volreg_tlrc_warp                                                                \
+             -volreg_warp_dxyz 3                                                              \
+             -blur_size 4.0                                                                   \
+             -mask_epi_anat yes                                                               \
+             -regress_opts_3dD -jobs 32                                                       \
+             -regress_motion_per_run                                                          \
+             -regress_ROI_PC FSvent 3                                                         \
+             -regress_ROI_PC_per_run FSvent                                                   \
+             -regress_make_corr_vols aeseg FSvent                                             \
+             -regress_anaticor_fast                                                           \
+             -regress_anaticor_label FSWe                                                     \
+             -regress_censor_motion 0.25                                                      \
+             -regress_censor_outliers 0.05                                                    \
+             -regress_apply_mot_types demean deriv                                            \
+             -regress_est_blur_epits                                                          \
+             -regress_est_blur_errts                                                          \
+             -regress_bandpass 0.01 0.1                                                       \
+             -regress_polort 5                                                                \
+             -regress_run_clustsim no                                                         \
+             -html_review_style pythonic                                                      \
+             -out_dir ${OUT_DIR}                                                              \
+             -script  SC02_Preproc_fMRI.${SBJ}.sh                                  \
+    	     -volreg_compute_tsnr yes                                                         \
+             -regress_compute_tsnr yes                                                        \
+             -regress_make_cbucket yes                                                        \
              -scr_overwrite                                         
-      sed -i 's/-cenmode ZERO/-cenmode NTRP/g' SC02_Preproc_fMRI.${SBJ}.sh
-      mv SC02_Preproc_fMRI.${SBJ}.sh SC02_Preproc_fMRI/
-      echo "module load afni; tcsh -xef ./SC02_Preproc_fMRI/SC02_Preproc_fMRI.${SBJ}.sh 2>&1 | tee ./SC02_Preproc_fMRI/output.SC02_Preproc_fMRI.${SBJ}.txt" >> ./SC02_Preproc_fMRI.SWARM.sh
+  
+  # Make correction to created script: use linear interpolation instead of zeros for censored datapoints
+  # I need to do this post-hoc becuase afni_proc does not seem to have an option for this. 
+  sed -i 's/-cenmode ZERO/-cenmode NTRP/g' SC02_Preproc_fMRI.${SBJ}.sh
+
+  # Move newly created processing script to the scripts folder for this step.
+  mv ${FMRI_ORIG_DIR}/SC02_Preproc_fMRI.${SBJ}.sh ${PRJDIR}/Scripts/SC02_Preproc_fMRI/
+
+  # Add line for this subject to the Swarm file
+  echo "module load afni; tcsh -xef ./SC02_Preproc_fMRI/SC02_Preproc_fMRI.${SBJ}.sh 2>&1 | tee ./SC02_Preproc_fMRI/output.SC02_Preproc_fMRI.${SBJ}.txt" >> ${PRJDIR}/Scripts/SC02_Preproc_fMRI.SWARM.sh
 done
