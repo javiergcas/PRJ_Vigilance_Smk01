@@ -4,7 +4,7 @@ This repository containst scripts to process Samika's DSET 1.
 
 ## Anatomical Processing
 
-1. Run Freesurfer in anatomical data.
+1. <u>Run Freesurfer</u> in anatomical data.
   * Skull-stripped version of anatomical
   * Ventricles mask (needed for CompCorr / Physiological noise removal)
   * White matter mask (needed for ANATICOR / Scanner instability confounds removal)
